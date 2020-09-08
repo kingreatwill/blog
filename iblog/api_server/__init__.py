@@ -1,4 +1,4 @@
-from iblog.api_server.api import blueprint
+from .api import blueprint
 
 
 class ApiServer(object):

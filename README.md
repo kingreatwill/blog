@@ -60,3 +60,15 @@ https://github.com/devspace/awesome-github-templates
  data:{
      // access_token:_config['access_token']
  },
+
+
+```
+python setup.py check
+python setup.py sdist bdist_wheel
+python setup.py install
+twine upload dist/*
+
+python -m iblog -h
+or
+iblog -h
+```
