@@ -67,6 +67,7 @@ python setup.py check
 python setup.py sdist bdist_wheel
 python setup.py install
 twine upload dist/*
+twine upload dist/iblog-0.0.6*
 
 python -m iblog -h
 or
