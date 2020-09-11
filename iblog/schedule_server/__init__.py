@@ -10,13 +10,10 @@
 # ZooKeeper
 import threading
 
-from iblog.target import Target
 
-
-class ScheduleServer(threading.Thread,Target):
+class ScheduleServer(threading.Thread):
     def __init__(self, crontab):
         super().__init__()
-        from apscheduler.schedulers.background import BackgroundScheduler
         from apscheduler.schedulers.blocking import BlockingScheduler
         from apscheduler.triggers.cron import CronTrigger
         # 默认整点执行一次

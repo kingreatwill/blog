@@ -1,7 +1,5 @@
 import threading
 
-from iblog.target import Target
-
 
 class ConsumerOfKafka(object):
     def __init__(self, topic, group_id, servers):
@@ -45,7 +43,7 @@ class ConsumerOfAmqp(object):
         self.connection.close()
 
 
-class MqServer(threading.Thread,Target):
+class MqServer(threading.Thread):
     def __init__(self, mq, queue, servers, topic, group_id):
         super().__init__()
         self.mq = mq

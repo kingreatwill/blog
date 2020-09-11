@@ -1,6 +1,7 @@
 import argparse
 from itertools import zip_longest
 
+from iblog import target
 from iblog.api_server import ApiServer
 from iblog.mq_server import MqServer
 from iblog.schedule_server import ScheduleServer
@@ -25,13 +26,13 @@ parser.add_argument('--bgroup_id', type=str, default='BlogIssueGroup', help='kaf
 
 parser.add_argument('-c', '--crontab', type=str, default='0 */1 * * *', help='默认整点执行一次.')
 
-parser.add_argument('-t', '--target', nargs='+', default=['github'], help='''
+parser.add_argument('-t', '--target', nargs='+', default=['gitee'], help='''
             - github 同步github issues;
             - gitee 同步gitee issues;
             例如：-t github access_token gitee;
     ''')
-parser.add_argument('--token', nargs='+',default=[], help='access_token 顺序与target一致.')
-parser.add_argument('--repo', nargs='+',default=[], help='repo(如: kingreatwill/blog) 顺序与target一致.')
+parser.add_argument('--token', nargs='+', default=[], help='access_token 顺序与target一致.')
+parser.add_argument('--repo', nargs='+', default=[], help='repo(如: kingreatwill/blog) 顺序与target一致.')
 
 args = parser.parse_args()
 
@@ -39,11 +40,13 @@ args = parser.parse_args()
 # celery 分布式任务队列
 def main():
     print(args)
+    # 初始化目标;
+    target.init(list(zip_longest(args.target, args.token, args.repo, fillvalue=None)))
+
     threads = []
     if args.mode.find('a') >= 0:
         # 运行Flask
         server_a = ApiServer(host=args.ahost, port=args.aport, debug=args.adebug)
-        server_a.set_targets(list(zip_longest(args.target, args.token, args.repo, fillvalue=None)))
         server_a.start()
         threads.append(server_a)
 
@@ -51,14 +54,12 @@ def main():
         # 监听RBMQ
         server_b = MqServer(mq=args.bmq, queue=args.bqueue, servers=args.bservers, topic=args.btopic,
                             group_id=args.bgroup_id)
-        server_b.set_targets(list(zip_longest(args.target, args.token, args.repo, fillvalue=None)))
         server_b.start()
         threads.append(server_b)
 
     if args.mode.find('c') >= 0:
         # 定时任务
         server_c = ScheduleServer(crontab=args.crontab)
-        server_c.set_targets(list(zip_longest(args.target, args.token, args.repo, fillvalue=None)))
         server_c.start()
         threads.append(server_c)
 

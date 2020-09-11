@@ -1,22 +1,52 @@
-from flask import Blueprint
+from flask import Blueprint, Flask, jsonify
+
+from iblog import target
+from iblog.api_server.util import params
+from iblog.issue import Issue
 
 blueprint = Blueprint(name='api', import_name=__name__)
 
 
-def register_api(server):
-    server.app.register_blueprint(blueprint, url_prefix='/api')
+def register_api(app: Flask):
+    app.register_blueprint(blueprint, url_prefix='/api/issue')
 
 
-@blueprint.route('/issue', methods=['POST'])
+"""
+Content-Type : application/json
+{
+    "title":"testing",
+    "body": "this is testing.",
+    "labels":"testing"
+}
+"""
+@blueprint.route('/create', methods=['POST'])
 def create():
-    return 'Hello World'
+    issue = Issue()
+    issue.__dict__.update(params())
+    return jsonify(target.sync_create(issue))
 
-
-@blueprint.route('/issue', methods=['POST'])
+"""
+{
+    "number": "1",
+    "title": "testing1",
+    "body": "this is testing1.",
+    "labels":"testing1"
+}
+"""
+@blueprint.route('/update', methods=['POST'])
 def update():
-    return 'Hello World'
+    issue = Issue()
+    issue.__dict__.update(params())
+    return jsonify(target.sync_update(issue))
 
 
-@blueprint.route('/issue', methods=['POST'])
+"""
+{
+    "number": "2"
+}
+"""
+@blueprint.route('/delete', methods=['POST'])
 def delete():
-    return 'Hello World'
+    issue = Issue()
+    issue.__dict__.update(params())
+    return jsonify(target.sync_delete(issue))
