@@ -1,7 +1,18 @@
+import threading
+
+from iblog.target import Target
+
+
 class ConsumerOfKafka(object):
-    def __init__(self, topic='', group_id='my_favorite_group', servers='localhost:9092'):
+    def __init__(self, topic, group_id, servers):
         from kafka import KafkaConsumer
-        consumer = KafkaConsumer(topic, group_id=group_id, bootstrap_servers=servers)
+        self.topic = topic
+        self.group_id = group_id
+        if servers:
+            self.servers = servers
+        else:
+            self.servers = 'localhost:9092'
+        consumer = KafkaConsumer(self.topic, group_id=self.group_id, bootstrap_servers=self.servers)
         self.consumer = consumer
 
     def run(self):
@@ -10,9 +21,12 @@ class ConsumerOfKafka(object):
 
 
 class ConsumerOfAmqp(object):
-    def __init__(self, queue='', servers='localhost:5672'):
+    def __init__(self, queue, servers):
         self.queue = queue
-        self.servers = servers
+        if servers:
+            self.servers = servers
+        else:
+            self.servers = 'localhost:5672'
         import pika
         server_list = [pika.ConnectionParameters(host=s.split(':')[0], port=int(s.split(':')[1]))
                        for s in servers.split(',')]
@@ -31,11 +45,14 @@ class ConsumerOfAmqp(object):
         self.connection.close()
 
 
-class MqServer(object):
-    def __init__(self):
-        self.server = ConsumerOfAmqp()
-        self.server = ConsumerOfKafka()
-        ...
+class MqServer(threading.Thread,Target):
+    def __init__(self, mq, queue, servers, topic, group_id):
+        super().__init__()
+        self.mq = mq
+        if self.mq == 'kafka':
+            self.server = ConsumerOfKafka(topic=topic, group_id=group_id, servers=servers)
+        else:
+            self.server = ConsumerOfAmqp(queue=queue, servers=servers)
 
     def run(self):
         self.server.run()

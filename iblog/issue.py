@@ -1,5 +1,8 @@
 from dataclasses import dataclass
 
+import gitee
+from github import Github
+
 
 @dataclass
 class Issue(object):
@@ -13,12 +16,15 @@ class Issue(object):
 
 
 def github_01():
-    from github import Github
     g = Github("access_token")
-    for repo in g.get_user().get_repos():
-        print(repo.name)
+
+    repo = g.get_repo("PyGithub/PyGithub")
+    issue = repo.create_issue(title="This is a new issue", body="This is the issue body", labels=['label'])
+    issue2 = repo.get_issue(number=874)
+    # issue.update()
+
 
 def gitee_01():
-    import gitee
     api_instance = gitee.IssuesApi(gitee.ApiClient())
     print(api_instance.get_v5_repos_owner_repo_issues("kingreatwill", "kingreatwill"))
+    api_instance.post_v5_repos_owner_issues()

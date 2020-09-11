@@ -8,15 +8,21 @@
 # RethinkDB
 #
 # ZooKeeper
+import threading
 
-class ScheduleServer(object):
-    def __init__(self, crontab='0 */1 * * *'):
+from iblog.target import Target
+
+
+class ScheduleServer(threading.Thread,Target):
+    def __init__(self, crontab):
+        super().__init__()
         from apscheduler.schedulers.background import BackgroundScheduler
+        from apscheduler.schedulers.blocking import BlockingScheduler
         from apscheduler.triggers.cron import CronTrigger
         # 默认整点执行一次
         self.crontab = crontab
         # 后期支持分布式
-        self.scheduler = BackgroundScheduler()
+        self.scheduler = BlockingScheduler()
         self.scheduler.add_job(self.sync, CronTrigger.from_crontab(self.crontab))
 
     def sync(self):
@@ -24,5 +30,5 @@ class ScheduleServer(object):
         # 同步数据库
         ...
 
-    def start(self):
+    def run(self):
         self.scheduler.start()
