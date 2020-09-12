@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 NAME = "iblog"
 VERSION = "0.0.6"
 REQUIRES = ["flask>=1.1.2", "kafka-python >= 2.0.1", "pika>=1.1.0", "apscheduler>=3.6.3", "PyGithub>=1.53",
-            "pygitee>=1.0.0"]
+            "pygitee>=1.0.0","peewee>=3.13.3"]
 
 setup(
     name=NAME,

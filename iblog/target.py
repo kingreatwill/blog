@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from itertools import zip_longest
+from typing import List
 
+from iblog import domain
 from iblog.api_server import model
 from iblog.issue import Issue, GiteeIssue, GithubIssue
 
@@ -19,7 +21,7 @@ def sync_issue(m: TargetModel):
         return GithubIssue(access_token=m.token, repo=m.repo)
 
 
-targets = []
+targets: List[TargetModel] = []
 
 
 def init(tgts: list):
@@ -44,17 +46,23 @@ def get_targets(issue: Issue = None):
 
 def sync_create(issue: Issue):
     result = []
-    for t in get_targets(issue):
-        obj = sync_issue(t)
-        result.append({'dist': t.dist, **obj.create(issue)})
+    tgs = get_targets(issue)
+    # 添加数据
+    domain.create(issue, tgs)
+    for t in tgs:
+        # 同步
+        obj = sync_issue(t).create(issue)
+        issue.number = obj['number']
+        # 更新数据
+        domain.update_sync_state(issue, t)
+        result.append({'dist': t.dist, **obj})
     return model.Response(ok=(not result) is False, data=result)
 
 
 def sync_update(issue: Issue):
     result = []
     for t in get_targets(issue):
-        obj = sync_issue(t)
-        obj.update(issue)
+        obj = sync_issue(t).update(issue)
         result.append({'dist': t.dist, 'ok': True})
     return model.Response(ok=(not result) is False, data=result)
 
@@ -62,7 +70,6 @@ def sync_update(issue: Issue):
 def sync_delete(issue: Issue):
     result = []
     for t in get_targets(issue):
-        obj = sync_issue(t)
-        obj.close(issue)
+        obj = sync_issue(t).close(issue)
         result.append({'dist': t.dist, 'ok': True})
     return model.Response(ok=(not result) is False, data=result)

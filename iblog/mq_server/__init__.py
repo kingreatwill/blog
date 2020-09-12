@@ -1,5 +1,8 @@
 import threading
 
+from iblog import target
+from iblog.issue import Issue
+
 
 class ConsumerOfKafka(object):
     def __init__(self, topic, group_id, servers):
@@ -15,6 +18,9 @@ class ConsumerOfKafka(object):
 
     def run(self):
         for msg in self.consumer:
+            # issue = Issue()
+            # issue.__dict__.update()
+            # target.sync_create(issue)
             print(msg)
 
 

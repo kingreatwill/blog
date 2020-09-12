@@ -1,6 +1,7 @@
 import argparse
 from itertools import zip_longest
 
+from iblog import domain
 from iblog import target
 from iblog.api_server import ApiServer
 from iblog.mq_server import MqServer
@@ -34,6 +35,7 @@ parser.add_argument('-t', '--target', nargs='+', default=['gitee'], help='''
 parser.add_argument('--token', nargs='+', default=[], help='access_token 顺序与target一致.')
 parser.add_argument('--repo', nargs='+', default=[], help='repo(如: kingreatwill/blog) 顺序与target一致.')
 
+parser.add_argument('--url', type=str, default='sqlite:///:memory', help='数据库连接.')
 args = parser.parse_args()
 
 
@@ -42,7 +44,8 @@ def main():
     print(args)
     # 初始化目标;
     target.init(list(zip_longest(args.target, args.token, args.repo, fillvalue=None)))
-
+    # 初始化数据库;
+    domain.init(url=args.url)
     threads = []
     if args.mode.find('a') >= 0:
         # 运行Flask
