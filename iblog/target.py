@@ -61,15 +61,23 @@ def sync_create(issue: Issue):
 
 def sync_update(issue: Issue):
     result = []
+    # 更新同步数据
+    domain.update(issue)
     for t in get_targets(issue):
         obj = sync_issue(t).update(issue)
+        # 更新数据
+        domain.update_sync_state(issue, t)
         result.append({'dist': t.dist, 'ok': True})
     return model.Response(ok=(not result) is False, data=result)
 
 
 def sync_delete(issue: Issue):
     result = []
+    # 更新同步数据
+    domain.update(issue)
     for t in get_targets(issue):
         obj = sync_issue(t).close(issue)
+        # 更新数据
+        domain.update_sync_state(issue, t)
         result.append({'dist': t.dist, 'ok': True})
     return model.Response(ok=(not result) is False, data=result)

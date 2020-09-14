@@ -59,29 +59,35 @@ def create(issue: Issue, targets: List[TargetModel]):
 
 
 # 更新
-def update(issue: Issue, targets: List[TargetModel]):
+def update(issue: Issue):
     with db.connection_context():
         with db.transaction():
             basic = model.IssueBasic.get(model.IssueBasic.blog_id == issue.blog_id)
-            basic.title = issue.title
-            basic.body = issue.body
-            basic.labels = issue.labels
-            basic.state = issue.labels
+            if issue.title:
+                basic.title = issue.title
+            if issue.body:
+                basic.body = issue.body
+            if issue.labels:
+                basic.labels = issue.labels
+            if issue.state:
+                basic.state = issue.state
             basic.save()
-            for t in targets:
-                sync = model.IssueSync(basic_id=basic.id,
-                                       blog_id=issue.blog_id,
-                                       dist=t.dist,
-                                       repo=t.repo)
-                sync.save()
+            # & / ,
+            model.IssueSync.update({model.IssueSync.sync_state: 0}).where(
+                (model.IssueSync.sync_state == basic.id)
+                & (model.IssueSync.blog_id == issue.blog_id)
+            ).execute()
 
 
 # 更新同步状态
 def update_sync_state(issue: Issue, targ: TargetModel):
     with db.connection_context():
         sync = model.IssueSync.get(
-            model.IssueSync.blog_id == issue.blog_id and model.IssueSync.dist == targ.dist and model.IssueSync.repo == targ.repo
+            (model.IssueSync.blog_id == issue.blog_id)
+            & (model.IssueSync.dist == targ.dist)
+            & (model.IssueSync.repo == targ.repo)
         )
-        sync.issue_number = issue.number
+        if not sync.issue_number:
+            sync.issue_number = issue.number
         sync.sync_state = 1
         sync.save()
